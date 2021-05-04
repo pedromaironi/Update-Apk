@@ -12,6 +12,7 @@ import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -49,16 +50,12 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-    private TextView textViewProgressValue;
-    private ProgressBar progressBarDownload;
     public static final String TAG = "MainActivity";
     CheckVersion mCheckVersion;
-    Button btn;
     public static Context mContext;
     private static final int PERMISSION_REQUEST = 100;
     private CheckJson mCheckJson;
     private AppInfo mAppInfo;
-    private AlertDialog mDialogPermissions;
     private AlertDialog mDialogDownloadApp;
     SharedPreferences data;
     SharedPreferences.Editor edit;
@@ -73,66 +70,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-
-//        DownloadJson.getJson().getSharedPref().setCommonBooleanValue(SharedPref.IS_APP_IN_BACKGROUND, true);
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
 
-//        DownloadJson.getJson().getSharedPref().setCommonBooleanValue(SharedPref.IS_APP_IN_BACKGROUND, false);
         data = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        Log.d("bool", String.valueOf(data.getBoolean("AlertDialog", false)));
+//        Log.d("bool", String.valueOf(data.getBoolean("AlertDialog", false)));
         if (!(data.getBoolean("AlertDialog", false))){
             checkForPermission();
         }
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        if (notificationManager != null) {
-            notificationManager.cancelAll();
-        }
+
     }
 
     void init() {
         mAppInfo = new AppInfo();
         setInfoApp();
         mCheckJson = new CheckJson();
-        textViewProgressValue = findViewById(R.id.textView_progressValue);
-        progressBarDownload = findViewById(R.id.progressBar_download);
-        btn = findViewById(R.id.button_download);
         mCheckVersion = new CheckVersion();
-        textViewProgressValue.setText(getResources().getString(R.string.status_idle_text));
         checkForPermission();
     }
 
-    private void subscribe() {
-        final Observer<Long> downloadProgressObserver = new Observer<Long>() {
-            @Override
-            public void onChanged(@Nullable final Long aLong) {
-
-                int progressValue = 0;
-                if (aLong != null) {
-                    progressValue = aLong.intValue();
-                }
-                if (progressValue > 0) {
-                    //isDownloading = true;
-                    btn.setClickable(false);
-                    String text = getResources().getString(R.string.status_downloaded_text) + " " + progressValue + "%";
-                    textViewProgressValue.setText(text);
-                }
-
-                if(progressValue == 100){
-                    btn.setClickable(true);
-                }
-
-                progressBarDownload.setProgress(progressValue);
-            }
-        };
-
-//        mCheckVersion.getDownloadStatus().observe(this, downloadProgressObserver);
-    }
     private void checkForPermission() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -292,9 +248,8 @@ public class MainActivity extends AppCompatActivity {
                                      new DialogInterface.OnClickListener() {
                                          @Override
                                          public void onClick(DialogInterface dialog, int which) {
-                                             /* The user goes to app.sysnotes.net */
-
-//                                                 openBrowserToDownload(DOWNLOAD_URL);
+                                             Intent i = new Intent(getApplicationContext(), DownloadApk.class);
+                                             startActivity(i);
                                          }
                                      }).setNegativeButton("No, thanks",
                                      new DialogInterface.OnClickListener() {
@@ -308,10 +263,8 @@ public class MainActivity extends AppCompatActivity {
                                      }).create();
                      mDialogDownloadApp.show();
                  } else {
-                     data = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                     edit = data.edit();
-                     edit.putBoolean("AlertDialog", true);
-                     edit.apply();
+                     Intent i = new Intent(getApplicationContext(), DownloadApk.class);
+                     startActivity(i);
 //                     DownloadButtonClicked();
                  }
             }

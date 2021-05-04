@@ -23,10 +23,6 @@ import java.net.URLConnection;
 
 public class DownloadWorkerJson extends Worker {
 
-    private NotificationHelper notificationHelper;
-    public static boolean band = false;
-    private int current = 0;
-
     public DownloadWorkerJson(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
@@ -35,16 +31,14 @@ public class DownloadWorkerJson extends Worker {
     @Override
     public Worker.Result doWork() {
 
-        notificationHelper = new NotificationHelper(MainActivity.mContext);
-
         int count;
         String url_;
         try {
             // Protocols
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT){
-                url_ = Constants.protocolKitKatMinus + Constants.DOWNLOAD_FILE_URL;
+                url_ = Constants.protocolKitKatMinus + Constants.DOWNLOAD_FILE_JSON_URL;
             }else{
-                url_ = Constants.protocolKitKatPlus + Constants.DOWNLOAD_FILE_URL;
+                url_ = Constants.protocolKitKatPlus + Constants.DOWNLOAD_FILE_JSON_URL;
             }
             URL url = new URL(url_);
             URLConnection connection = url.openConnection();
@@ -69,8 +63,6 @@ public class DownloadWorkerJson extends Worker {
                 // publishing the progress....
                 int value = (int) ((total * 100) / lengthOfFile);
                 //notify user
-                showNotification(value);
-                // writing data to file
                 output.write(data, 0, count);
             }
 
@@ -92,13 +84,5 @@ public class DownloadWorkerJson extends Worker {
         return Worker.Result.success();
     }
 
-    private void showNotification(int percent) {
-        if(percent > 0 && percent % 5 == 0){
-            if(current != percent) {
-                System.out.println("entro2");
-                notificationHelper.createNotification(Constants.TITLE_NOTIFICATION, percent + "%");
-                current = percent;
-            }
-        }
-    }
+
 }
