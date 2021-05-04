@@ -23,6 +23,7 @@ public class Constants {
     public static final String SHARED_PREF_KEY = "downloaderAppKey";
 
     /*Check version constants*/
+    public static final String nameApp = "nameApp";
     public static final String downloadUrl = "downloadUrl";
     public static final String currentVersionCode = "currentVersionCode";
     public static final String currentVersionName = "currentVersionName";

@@ -12,11 +12,14 @@ import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -24,6 +27,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.pedromaironi.workmanager.models.AppInfo;
 import com.pedromaironi.workmanager.models.CheckJson;
 import com.pedromaironi.workmanager.services.DownloadJson;
 import com.pedromaironi.workmanager.R;
@@ -47,19 +51,24 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     private TextView textViewProgressValue;
     private ProgressBar progressBarDownload;
-    private AlertDialog mDialog;
     public static final String TAG = "MainActivity";
     CheckVersion mCheckVersion;
     Button btn;
     public static Context mContext;
     private static final int PERMISSION_REQUEST = 100;
     private CheckJson mCheckJson;
+    private AppInfo mAppInfo;
+    private AlertDialog mDialogPermissions;
+    private AlertDialog mDialogDownloadApp;
+    SharedPreferences data;
+    SharedPreferences.Editor edit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         init();
+
         mContext = this;
     }
 
@@ -75,7 +84,11 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
 //        DownloadJson.getJson().getSharedPref().setCommonBooleanValue(SharedPref.IS_APP_IN_BACKGROUND, false);
-
+        data = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        Log.d("bool", String.valueOf(data.getBoolean("AlertDialog", false)));
+        if (!(data.getBoolean("AlertDialog", false))){
+            checkForPermission();
+        }
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null) {
             notificationManager.cancelAll();
@@ -83,6 +96,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void init() {
+        mAppInfo = new AppInfo();
+        setInfoApp();
         mCheckJson = new CheckJson();
         textViewProgressValue = findViewById(R.id.textView_progressValue);
         progressBarDownload = findViewById(R.id.progressBar_download);
@@ -123,33 +138,19 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                mDialog = new AlertDialog.Builder(MainActivity.this)
-                        .setTitle(getApplicationInfo().name)
-                        .setMessage("You need to grant this permissions for future updates")
-                        .setPositiveButton("Accept",
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST);
 
-                                    }
-                                }).setNegativeButton("No, thanks",
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        finish();
-                                    }
-                                }).create();
-                mDialog.show();
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST);
+
                 if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                     Toast.makeText(MainActivity.this, "This permissions are needed to update app",
                             Toast.LENGTH_SHORT).show();
+
                 }
             } else {
-                DownloadButtonClicked();
+                DownloadJson();
             }
         } else {
-            DownloadButtonClicked();
+            DownloadJson();
         }
     }
 
@@ -157,10 +158,10 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            DownloadButtonClicked();
+            DownloadJson();
         }
     }
-    private void DownloadButtonClicked() {
+    private void DownloadJson() {
         mCheckVersion.startDownloadJson();
         if(mCheckVersion.Downloaded()) {
             WorkManager.getInstance(DownloadJson.getJson())
@@ -211,6 +212,9 @@ public class MainActivity extends AppCompatActivity {
                 //Log.d("entry", entry.getKey());
                 //Log.d("entry", String.valueOf(entry.getValue()));
                 switch(entry.getKey()){
+                    case Constants.nameApp:
+                        mCheckJson.setNameApp(String.valueOf(entry.getValue()));
+                        break;
                     case Constants.downloadUrl:
                         mCheckJson.setDownloadUrl(String.valueOf(entry.getValue()));
                         break;
@@ -231,14 +235,88 @@ public class MainActivity extends AppCompatActivity {
         } catch (Throwable t) {
             Log.e("My App", "Could not parse malformed JSON: \""  + "\"");
         }
-
-        VerifyVersion();
+        VerifyVersions();
     }
 
-    private void VerifyVersion() {
+    private void setInfoApp() {
+        /* These variables are for get version code and name of the app */
+        int versionCode = 0;
+        String versionName = "";
 
+        try {
+            /* Get android:versionName */
+            versionName = getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName;
+            mAppInfo.setCurrentVersionName(versionName);
+            /* Get android:versionCode*/
+            versionCode = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+            mAppInfo.setCurrentVersionCode(String.valueOf(versionCode));
+
+            mAppInfo.setNameApp(getNameApp());
+
+            /* Test */
+            Log.e("VersionNAME:",versionName);
+            Log.e("versionCode:", String.valueOf(versionCode));
+
+        }catch (Exception e){}
     }
 
+    private String getNameApp() {
+        PackageManager packageManager = getApplicationContext().getPackageManager();
+        ApplicationInfo applicationInfo = null;
+        try {
+            applicationInfo = packageManager.getApplicationInfo(getApplicationContext().getApplicationInfo().packageName, 0);
+        } catch (final PackageManager.NameNotFoundException e) {
+        }
+        return (String) (applicationInfo != null ? packageManager.getApplicationLabel(applicationInfo) : "Unknown");
+    }
+
+    private void VerifyVersions (){
+        Log.d(TAG, mAppInfo.getNameApp());
+        Log.d(TAG, mCheckJson.getNameApp());
+        Log.d(TAG, mAppInfo.getCurrentVersionCode());
+        Log.d(TAG, mCheckJson.getCurrentVersionCode());
+        Log.d(TAG, mCheckJson.getOldVersionCode());
+        if ((mAppInfo.getNameApp().equals(mCheckJson.getNameApp())) && (mAppInfo.getCurrentVersionCode().equals(mCheckJson.getOldVersionCode()))){
+             if (Integer.parseInt(mAppInfo.getCurrentVersionCode()) < Integer.parseInt(mCheckJson.getCurrentVersionCode())){
+                Toast.makeText(MainActivity.this, "update", Toast.LENGTH_LONG).show();
+                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                     data = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                     edit = data.edit();
+                     edit.putBoolean("AlertDialog", true);
+                     edit.apply();
+                     mDialogDownloadApp = new AlertDialog.Builder(MainActivity.this)
+                             .setTitle("New version available")
+                             .setMessage("Please, update app to new version.")
+                             .setCancelable(false)
+                             .setPositiveButton("Update",
+                                     new DialogInterface.OnClickListener() {
+                                         @Override
+                                         public void onClick(DialogInterface dialog, int which) {
+                                             /* The user goes to app.sysnotes.net */
+
+//                                                 openBrowserToDownload(DOWNLOAD_URL);
+                                         }
+                                     }).setNegativeButton("No, thanks",
+                                     new DialogInterface.OnClickListener() {
+                                         @Override
+                                         public void onClick(DialogInterface dialog, int which) {
+                                             edit.putBoolean("AlertDialog", false);
+                                             edit.apply();
+                                             Toast.makeText(MainActivity.this,
+                                                     "You have a pending update", Toast.LENGTH_LONG).show();
+                                         }
+                                     }).create();
+                     mDialogDownloadApp.show();
+                 } else {
+                     data = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                     edit = data.edit();
+                     edit.putBoolean("AlertDialog", true);
+                     edit.apply();
+//                     DownloadButtonClicked();
+                 }
+            }
+        }
+    }
     public static Map<String, Object> jsonToMap(JSONObject json) throws JSONException {
         Map<String, Object> retMap = new HashMap<String, Object>();
 

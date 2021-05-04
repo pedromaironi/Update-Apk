@@ -1,6 +1,7 @@
 package com.pedromaironi.workmanager.models;
 
 public class CheckJson {
+    String nameApp;
     String downloadUrl;
     String currentVersionCode;
     String currentVersionName;
@@ -10,12 +11,22 @@ public class CheckJson {
     public CheckJson(){
 
     }
-    public CheckJson(String downloadUrl, String currentVersionCode, String currentVersionName, String oldVersionCode, String oldVersionName) {
+
+    public CheckJson(String nameApp, String downloadUrl, String currentVersionCode, String currentVersionName, String oldVersionCode, String oldVersionName) {
+        this.nameApp = nameApp;
         this.downloadUrl = downloadUrl;
         this.currentVersionCode = currentVersionCode;
         this.currentVersionName = currentVersionName;
         this.oldVersionCode = oldVersionCode;
         this.oldVersionName = oldVersionName;
+    }
+
+    public String getNameApp() {
+        return nameApp;
+    }
+
+    public void setNameApp(String nameApp) {
+        this.nameApp = nameApp;
     }
 
     public String getDownloadUrl() {
