@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <external-cache-path
-        name="external-cache-path"
-        path="."/>
     <external-files-path
-        name="external-files-path"
+        name="AppVerification"
         path="."/>
-    <files-path
-        name="files_path"
-        path="."/>
-    <cache-path
-        name="cache-path"
-        path="."/>
-    <root-path
-        name="name"
-        path="."/>
+
+<!--
+<files-path/> -> Context.getFilesDir()
+<cache-path/> -> Context.getCacheDir()
+<external-path/> -> Environment.getExternalStorageDirectory()
+<external-files-path/> -> Context.getExternalFilesDir(String)
+<external-cache-path/> -> Context.getExternalCacheDir()
+<external-media-path/> -> Context.getExternalMediaDirs()
+-->
 </paths>

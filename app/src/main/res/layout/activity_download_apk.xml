@@ -3,11 +3,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.MainActivity">
+    tools:context=".ui.DownloadApk">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:layout_centerHorizontal="true"
+        android:text="UPDATE"
+        android:textColor="#000000"
+        android:textAllCaps="true"
+        android:textSize="40sp" />
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/textView"
+        android:layout_marginTop="50dp"
         android:layout_above="@+id/button_download">
 
         <ProgressBar
@@ -15,6 +28,7 @@
             style="?android:progressBarStyleHorizontal"
             android:layout_width="150dp"
             android:layout_height="150dp"
+            android:layout_centerVertical="true"
             android:layout_centerHorizontal="true"
             android:progress="100"
             android:progressDrawable="@drawable/circle" />
@@ -26,7 +40,7 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:textStyle="bold"
-            android:textColor="@color/colorPrimaryDark"/>
+            android:textColor="#303F9F"/>
     </RelativeLayout>
 
     <Button
@@ -35,7 +49,9 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:text="@string/download_button_name"
-        android:theme="@style/PrimaryButton" />
+        android:text="UPDATE"
+        android:background="#3F51B5"
+        android:textColor="#ffffff"
+        />
 
 </RelativeLayout>

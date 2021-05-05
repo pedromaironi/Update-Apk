@@ -1,30 +1,27 @@
 package com.pedromaironi.workmanager.ui;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
-import androidx.work.Data;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.ProgressBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,13 +47,19 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String TAG = "MainActivity";
+    public static final String TAG = "LIFE";
     CheckVersion mCheckVersion;
     public static Context mContext;
     private static final int PERMISSION_REQUEST = 100;
+    private final int REQUEST_CODE_UKNOWN_APPS = 300;
+
     private CheckJson mCheckJson;
     private AppInfo mAppInfo;
     private AlertDialog mDialogDownloadApp;
+
+    private TextView mVersionCodeTextView;
+    private TextView mVersionNameTextView;
+
     SharedPreferences data;
     SharedPreferences.Editor edit;
 
@@ -64,44 +67,56 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        init();
-
         mContext = this;
+        init();
     }
 
+    private boolean InternetConnected(){
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+
+        if (networkInfo != null && networkInfo.isConnected()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     @Override
     protected void onResume() {
         super.onResume();
-
+        Log.d(TAG, "onResume");
         data = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-//        Log.d("bool", String.valueOf(data.getBoolean("AlertDialog", false)));
         if (!(data.getBoolean("AlertDialog", false))){
             checkForPermission();
         }
-
     }
 
+
+
     void init() {
+        // TextView
+        mVersionCodeTextView = findViewById(R.id.versionCode);
+        mVersionNameTextView = findViewById(R.id.versionName);
+
+        // Instance
         mAppInfo = new AppInfo();
-        setInfoApp();
         mCheckJson = new CheckJson();
         mCheckVersion = new CheckVersion();
-        checkForPermission();
+
+        // Set Version < Codes, Names >
+        setInfoApp();
+
+        // Verify connection to start
+        if (InternetConnected()) {
+            // Verify permission
+            checkForPermission();
+        }
     }
 
     private void checkForPermission() {
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-
                 requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST);
-
-                if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    Toast.makeText(MainActivity.this, "This permissions are needed to update app",
-                            Toast.LENGTH_SHORT).show();
-
-                }
             } else {
                 DownloadJson();
             }
@@ -113,8 +128,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            DownloadJson();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (grantResults.length > 0){
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    DownloadJson();
+                }else{
+                    checkForPermission();
+                }
+            }
+
         }
     }
     private void DownloadJson() {
@@ -159,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         try {
-
             JSONObject obj = new JSONObject(myJson);
             //Log.d("MyaApp", obj.toString());
             Map<String, Object> js = toMap(obj);
@@ -196,6 +217,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setInfoApp() {
         /* These variables are for get version code and name of the app */
+
         int versionCode = 0;
         String versionName = "";
 
@@ -232,9 +254,14 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, mAppInfo.getCurrentVersionCode());
         Log.d(TAG, mCheckJson.getCurrentVersionCode());
         Log.d(TAG, mCheckJson.getOldVersionCode());
+        // nameApp version actual == nameApp version old
+        // VersionCode actual == VersionCode old
+        // Luego
+        // Si la version de la app es menor a la version actual que viene desde el json
+        // do - hacer
         if ((mAppInfo.getNameApp().equals(mCheckJson.getNameApp())) && (mAppInfo.getCurrentVersionCode().equals(mCheckJson.getOldVersionCode()))){
              if (Integer.parseInt(mAppInfo.getCurrentVersionCode()) < Integer.parseInt(mCheckJson.getCurrentVersionCode())){
-                Toast.makeText(MainActivity.this, "update", Toast.LENGTH_LONG).show();
+//                Toast.makeText(MainActivity.this, "update", Toast.LENGTH_LONG).show();
                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                      data = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                      edit = data.edit();
@@ -248,17 +275,26 @@ public class MainActivity extends AppCompatActivity {
                                      new DialogInterface.OnClickListener() {
                                          @Override
                                          public void onClick(DialogInterface dialog, int which) {
-                                             Intent i = new Intent(getApplicationContext(), DownloadApk.class);
-                                             startActivity(i);
+                                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                                 if (!getPackageManager().canRequestPackageInstalls()) {
+                                                     edit.putBoolean("AlertDialog", false);
+                                                     edit.apply();
+                                                     startActivityForResult(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(Uri.parse(String.format("package:%s", getPackageName()))), REQUEST_CODE_UKNOWN_APPS);
+                                                 } else {
+                                                     startActivity(new Intent(getApplicationContext(), DownloadApk.class));
+                                                 }
+                                             } else {
+                                                 startActivity(new Intent(getApplicationContext(), DownloadApk.class));
+                                             }
+
                                          }
                                      }).setNegativeButton("No, thanks",
                                      new DialogInterface.OnClickListener() {
                                          @Override
                                          public void onClick(DialogInterface dialog, int which) {
-                                             edit.putBoolean("AlertDialog", false);
-                                             edit.apply();
-                                             Toast.makeText(MainActivity.this,
-                                                     "You have a pending update", Toast.LENGTH_LONG).show();
+//                                             edit.putBoolean("AlertDialog", false);
+//                                             edit.apply();
+                                             VerifyVersions();
                                          }
                                      }).create();
                      mDialogDownloadApp.show();
@@ -313,5 +349,23 @@ public class MainActivity extends AppCompatActivity {
             list.add(value);
         }
         return list;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            if (requestCode == REQUEST_CODE_UKNOWN_APPS && resultCode == Activity.RESULT_OK) {
+                if (getPackageManager().canRequestPackageInstalls()) {
+                    startActivity(new Intent(getApplicationContext(), DownloadApk.class));
+                }
+            } else {
+                //give the error
+            }
+        }
+
     }
 }

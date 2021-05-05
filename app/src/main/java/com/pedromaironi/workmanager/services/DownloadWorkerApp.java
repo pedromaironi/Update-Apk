@@ -4,9 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
-import android.os.Environment;
 import android.preference.PreferenceManager;
-//import android.support.v4.content.LocalBroadcastManager;
 
 import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -18,19 +16,15 @@ import com.pedromaironi.workmanager.ui.DownloadApk;
 import com.pedromaironi.workmanager.utils.Constants;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
-//import bd.com.cmed.downloaderapp.util.Constants;
-//import bd.com.cmed.downloaderapp.util.SharedPref;
-
 public class DownloadWorkerApp extends Worker {
 
-    private NotificationHelper notificationHelper;
+//    private NotificationHelper notificationHelper;
     private int current = 0;
     SharedPreferences data;
     SharedPreferences.Editor edit;
@@ -45,7 +39,7 @@ public class DownloadWorkerApp extends Worker {
     public Worker.Result doWork() {
 
         Intent intent = new Intent(Constants.INTENT_LOCAL_BROADCAST);
-        notificationHelper = new NotificationHelper(DownloadApk.mContext);
+//        notificationHelper = new NotificationHelper(DownloadApk.mContext);
 
         int count;
         String url_;
@@ -82,7 +76,7 @@ public class DownloadWorkerApp extends Worker {
                 LocalBroadcastManager.getInstance(DownloadApk.mContext).sendBroadcast(intent);
 
                 //notify user
-                showNotification(value);
+//                showNotification(value);
 
                 // writing data to file
                 output.write(data, 0, count);
@@ -104,15 +98,15 @@ public class DownloadWorkerApp extends Worker {
         return Worker.Result.success();
     }
 
-    private void showNotification(int percent) {
-        data = PreferenceManager.getDefaultSharedPreferences(DownloadApk.mContext);
-        boolean isInBack = data.getBoolean("IS_APP_IN_BACKGROUND", false);
-
-        if(isInBack && percent > 0 && percent % 5 == 0){
-            if(current != percent) {
-                notificationHelper.createNotification(Constants.TITLE_NOTIFICATION, percent + "%");
-                current = percent;
-            }
-        }
-    }
+//    private void showNotification(int percent) {
+//        data = PreferenceManager.getDefaultSharedPreferences(DownloadApk.mContext);
+//        boolean isInBack = data.getBoolean("IS_APP_IN_BACKGROUND", false);
+//
+//        if(isInBack && percent > 0 && percent % 5 == 0){
+//            if(current != percent) {
+//                notificationHelper.createNotification(Constants.TITLE_NOTIFICATION, percent + "%");
+//                current = percent;
+//            }
+//        }
+//    }
 }

@@ -13,6 +13,7 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 
 import com.pedromaironi.workmanager.R;
+import com.pedromaironi.workmanager.ui.DownloadApk;
 import com.pedromaironi.workmanager.ui.MainActivity;
 
 public class NotificationHelper {
@@ -32,7 +33,7 @@ public class NotificationHelper {
     public void createNotification(String title, String message)
     {
         /**Creates an explicit intent for an Activity in your app**/
-        Intent resultIntent = new Intent(mContext , MainActivity.class);
+        Intent resultIntent = new Intent(mContext , DownloadApk.class);
         resultIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         NotificationManager manager =
                 (NotificationManager) mContext.getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);

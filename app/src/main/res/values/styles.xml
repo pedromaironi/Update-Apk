@@ -7,8 +7,5 @@
             <item name="colorAccent">@color/colorAccent</item>
         </style>
 
-        <style name="PrimaryButton" parent="Theme.AppCompat">
-            <item name="colorButtonNormal">@color/colorPrimary</item>
-            <item name="colorControlHighlight">@color/colorAccent</item>
-        </style>
+
 </resources>

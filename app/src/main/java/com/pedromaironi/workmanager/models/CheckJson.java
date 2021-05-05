@@ -1,5 +1,19 @@
 package com.pedromaironi.workmanager.models;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Build;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
+import android.util.Log;
+
+import com.pedromaironi.workmanager.ui.DownloadApk;
+import com.pedromaironi.workmanager.ui.MainActivity;
+
 public class CheckJson {
     String nameApp;
     String downloadUrl;
@@ -7,9 +21,14 @@ public class CheckJson {
     String currentVersionName;
     String oldVersionCode;
     String oldVersionName;
+    SharedPreferences data;
+    SharedPreferences.Editor edit;
+    private final String TAG = "CHECK_JSON";
+    private AppInfo mAppInfo;
+    private AlertDialog mDialogDownloadApp;
 
     public CheckJson(){
-
+        mAppInfo = new AppInfo();
     }
 
     public CheckJson(String nameApp, String downloadUrl, String currentVersionCode, String currentVersionName, String oldVersionCode, String oldVersionName) {
@@ -68,4 +87,8 @@ public class CheckJson {
     public void setOldVersionName(String oldVersionName) {
         this.oldVersionName = oldVersionName;
     }
+
+
+
+
 }

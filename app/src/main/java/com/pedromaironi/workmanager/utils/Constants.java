@@ -2,6 +2,8 @@ package com.pedromaironi.workmanager.utils;
 
 import android.os.Environment;
 
+import com.pedromaironi.workmanager.ui.MainActivity;
+
 import java.io.File;
 
 public class Constants {
@@ -16,7 +18,7 @@ public class Constants {
     public static final String APK_EXTENSION = ".apk";
 
     public static final String TAG_WORKER_THREAD = "dowloadThread";
-    public static final String Path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + File.separator;
+    public static final String Path = MainActivity.mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) + File.separator;
 
     public static final String INTENT_LOCAL_BROADCAST = "DownloadStatus";
     public static final String INTENT_KEY = "percent";

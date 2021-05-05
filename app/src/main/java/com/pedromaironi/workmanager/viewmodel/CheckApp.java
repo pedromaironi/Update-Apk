@@ -14,7 +14,6 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
-import com.pedromaironi.workmanager.services.DownloadApp;
 import com.pedromaironi.workmanager.services.DownloadWorkerApp;
 import com.pedromaironi.workmanager.ui.DownloadApk;
 import com.pedromaironi.workmanager.utils.Constants;
