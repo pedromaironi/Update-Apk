@@ -29,9 +29,8 @@ public class CheckVersion {
     private void SetupScheduler(){
         mWorkManager = WorkManager.getInstance(DownloadJson.getJson());
         mSavedWorkStatus = mWorkManager.getWorkInfosByTagLiveData(Constants.TAG_WORKER_THREAD);
-        Log.d("mSavedWorkStatus1", String.valueOf(mSavedWorkStatus));
+        //Log.d("mSavedWorkStatus1", String.valueOf(mSavedWorkStatus));
         if(mSavedWorkStatus.getValue() != null && !mSavedWorkStatus.getValue().isEmpty()) {
-
             if (mSavedWorkStatus.getValue().get(0).getState().isFinished()){
                  scheduleTask();
             }

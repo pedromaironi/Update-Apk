@@ -2,9 +2,8 @@ package com.pedromaironi.workmanager.services;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
-import android.preference.PreferenceManager;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -12,6 +11,7 @@ import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.pedromaironi.workmanager.models.JsonInfo;
 import com.pedromaironi.workmanager.ui.DownloadApk;
 import com.pedromaironi.workmanager.utils.Constants;
 
@@ -25,9 +25,7 @@ import java.net.URLConnection;
 public class DownloadWorkerApp extends Worker {
 
 //    private NotificationHelper notificationHelper;
-    private int current = 0;
-    SharedPreferences data;
-    SharedPreferences.Editor edit;
+    JsonInfo mJsonInfo;
 
     public DownloadWorkerApp(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -43,12 +41,23 @@ public class DownloadWorkerApp extends Worker {
 
         int count;
         String url_;
+        mJsonInfo = new JsonInfo();
         try {
             // Protocols
+            // Esto era necesario si la pagina tenia ambos protocolos http y https, aun asi la funcion esta ahi
+            /*
+             * Entonces, como sysnotes no poseee https el codigo siguiente no es necesario
+             * ya que http es valido para todas las versiones
+             */
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT){
-                url_ = Constants.protocolKitKatMinus + Constants.DOWNLOAD_FILE_APK_URL;
+                // Si en el json pone: //www.url.com/file
+                // Tambien es valido: Constants.protocolKitKatMinus + mCheckJson.getDownloadUrl()
+                url_ = mJsonInfo.getDownloadUrl();
+                System.out.println(url_);
             }else{
-                url_ = Constants.protocolKitKatPlus + Constants.DOWNLOAD_FILE_APK_URL;
+                // Si en el json pone: //www.url.com/file
+                // Tambien es valido: Constants.protocolKitKatPlus + mCheckJson.getDownloadUrl()
+                url_ = mJsonInfo.getDownloadUrl();
             }
             URL url = new URL(url_);
             URLConnection connection = url.openConnection();
@@ -90,7 +99,7 @@ public class DownloadWorkerApp extends Worker {
             input.close();
 
         } catch (Exception e) {
-            //Log.e("Error: ", e.getMessage());
+            Log.e("Error: ", e.getMessage());
             WorkManager.getInstance(DownloadApk.mContext).cancelAllWorkByTag(Constants.TAG_WORKER_THREAD);
             return Worker.Result.failure();
         }

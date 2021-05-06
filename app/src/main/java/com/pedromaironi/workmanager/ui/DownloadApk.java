@@ -31,18 +31,21 @@ import com.pedromaironi.workmanager.viewmodel.CheckApp;
 import java.io.File;
 
 public class DownloadApk extends AppCompatActivity {
+
     public static final String TAG = "LIFE";
     public static Context mContext;
-    SharedPreferences data;
-    SharedPreferences.Editor edit;
+
     private TextView textViewProgressValue;
     private ProgressBar progressBarDownload;
+
     private CheckApp mCheckApp;
     private int progressValue = 0;
 
     //private boolean isDownloading = false;
     Button btnUpdate;
 
+    SharedPreferences data;
+    SharedPreferences.Editor edit;
     @Override
     protected void onResume() {
         super.onResume();
@@ -60,8 +63,7 @@ public class DownloadApk extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d(TAG, "onStart");
-
+        // Log.d(TAG, "onStart");
         if (progressValue == 100) {
             openApk();
         }
@@ -70,7 +72,7 @@ public class DownloadApk extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d(TAG, "onPause");
+        // Log.d(TAG, "onPause");
         data = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         edit = data.edit();
         edit.putBoolean("IS_APP_IN_BACKGROUND", true);
@@ -82,32 +84,46 @@ public class DownloadApk extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download_apk);
         mContext = this;
-        Log.d(TAG, "onCreate");
+        // Log.d(TAG, "onCreate");
         init();
     }
 
     private void init() {
 
+        // Instance
         textViewProgressValue = findViewById(R.id.textView_progressValue);
+        textViewProgressValue.setText(getResources().getString(R.string.status_downloading_text));
         progressBarDownload = findViewById(R.id.progressBar_download);
         btnUpdate = findViewById(R.id.button_download);
+
+        // Se puede obviar el boton pero si quiere puede modificar para que funcione
         btnUpdate.setVisibility(View.GONE);
         textViewProgressValue.setText(getResources().getString(R.string.status_idle_text));
+
         //viewModel initialize
         mCheckApp = new CheckApp();
+
+        // Subscribe progress value
         subscribe();
-        textViewProgressValue.setText(getResources().getString(R.string.status_downloading_text));
+
+        //Donwload app
         DownloadApp();
     }
 
     private void DownloadApp() {
+        // Download app
         mCheckApp.startDownload();
+        /*
+         Verificacion de la descarga para
+         cuando esta acabe abrir la apk automaticamente
+         */
         if (mCheckApp.Downloaded()) {
             WorkManager.getInstance(DownloadApp.getApp())
                     .getWorkInfoByIdLiveData(CheckApp.downloadingWork.getId())
                     .observe(this, new Observer<WorkInfo>() {
                         @Override
                         public void onChanged(WorkInfo workInfo) {
+                            // SUCCEEDED
                             if (workInfo.getState().name().equals("SUCCEEDED")) {
                                 openApk();
                             }
@@ -120,18 +136,19 @@ public class DownloadApk extends AppCompatActivity {
         File apkFile = new File(Constants.Path + Constants.DOWNLOAD_FILE_APP_NAME + Constants.APK_EXTENSION);
         Intent intent;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            // >= Api 24
             Uri apkUri = FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".FileProvider", apkFile);
             intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
             intent.setData(apkUri);
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         } else {
+            // < Api 24
             Uri apkUri = Uri.fromFile(apkFile);
             intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
         startActivity(intent);
-
     }
 
     private void subscribe() {
@@ -145,6 +162,7 @@ public class DownloadApk extends AppCompatActivity {
                 if (progressValue > 0) {
                     //isDownloading = true;
 //                    btnUpdate.setClickable(false);
+
                     String text = getResources().getString(R.string.status_downloaded_text) + " " + progressValue + "%";
                     textViewProgressValue.setText(text);
                 }

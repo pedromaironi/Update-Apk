@@ -23,10 +23,9 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.pedromaironi.workmanager.models.AppInfo;
-import com.pedromaironi.workmanager.models.CheckJson;
+import com.pedromaironi.workmanager.models.JsonInfo;
 import com.pedromaironi.workmanager.services.DownloadJson;
 import com.pedromaironi.workmanager.R;
 import com.pedromaironi.workmanager.utils.Constants;
@@ -53,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST = 100;
     private final int REQUEST_CODE_UKNOWN_APPS = 300;
 
-    private CheckJson mCheckJson;
+    private JsonInfo mJsonInfo;
     private AppInfo mAppInfo;
     private AlertDialog mDialogDownloadApp;
 
@@ -100,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Instance
         mAppInfo = new AppInfo();
-        mCheckJson = new CheckJson();
+        mJsonInfo = new JsonInfo();
         mCheckVersion = new CheckVersion();
 
         // Set Version < Codes, Names >
@@ -128,16 +127,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (grantResults.length > 0){
+            if (grantResults.length > 0) {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     DownloadJson();
-                }else{
+                } else {
                     checkForPermission();
                 }
-            }
-
         }
+
     }
     private void DownloadJson() {
         mCheckVersion.startDownloadJson();
@@ -190,22 +187,23 @@ public class MainActivity extends AppCompatActivity {
                 //Log.d("entry", String.valueOf(entry.getValue()));
                 switch(entry.getKey()){
                     case Constants.nameApp:
-                        mCheckJson.setNameApp(String.valueOf(entry.getValue()));
+                        mJsonInfo.setNameApp(String.valueOf(entry.getValue()));
                         break;
                     case Constants.downloadUrl:
-                        mCheckJson.setDownloadUrl(String.valueOf(entry.getValue()));
+                        mJsonInfo.setDownloadUrl(String.valueOf(entry.getValue()));
+//                        System.out.println(mCheckJson.getDownloadUrl());
                         break;
                     case Constants.currentVersionCode:
-                        mCheckJson.setCurrentVersionCode(String.valueOf(entry.getValue()));
+                        mJsonInfo.setCurrentVersionCode(String.valueOf(entry.getValue()));
                         break;
                     case Constants.currentVersionName:
-                        mCheckJson.setCurrentVersionName(String.valueOf(entry.getValue()));
+                        mJsonInfo.setCurrentVersionName(String.valueOf(entry.getValue()));
                         break;
                     case Constants.oldVersionCode:
-                        mCheckJson.setOldVersionCode(String.valueOf(entry.getValue()));
+                        mJsonInfo.setOldVersionCode(String.valueOf(entry.getValue()));
                         break;
                     case Constants.oldVersionName:
-                        mCheckJson.setOldVersionName(String.valueOf(entry.getValue()));
+                        mJsonInfo.setOldVersionName(String.valueOf(entry.getValue()));
                         break;
                 }
             }
@@ -225,10 +223,11 @@ public class MainActivity extends AppCompatActivity {
             /* Get android:versionName */
             versionName = getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName;
             mAppInfo.setCurrentVersionName(versionName);
+            mVersionNameTextView.setText(versionName);
             /* Get android:versionCode*/
             versionCode = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
             mAppInfo.setCurrentVersionCode(String.valueOf(versionCode));
-
+            mVersionCodeTextView.setText(String.valueOf(versionCode));
             mAppInfo.setNameApp(getNameApp());
 
             /* Test */
@@ -250,23 +249,25 @@ public class MainActivity extends AppCompatActivity {
 
     private void VerifyVersions (){
         Log.d(TAG, mAppInfo.getNameApp());
-        Log.d(TAG, mCheckJson.getNameApp());
+        Log.d(TAG, mJsonInfo.getNameApp());
         Log.d(TAG, mAppInfo.getCurrentVersionCode());
-        Log.d(TAG, mCheckJson.getCurrentVersionCode());
-        Log.d(TAG, mCheckJson.getOldVersionCode());
+        Log.d(TAG, mJsonInfo.getCurrentVersionCode());
+        Log.d(TAG, mJsonInfo.getOldVersionCode());
         // nameApp version actual == nameApp version old
         // VersionCode actual == VersionCode old
         // Luego
         // Si la version de la app es menor a la version actual que viene desde el json
         // do - hacer
-        if ((mAppInfo.getNameApp().equals(mCheckJson.getNameApp())) && (mAppInfo.getCurrentVersionCode().equals(mCheckJson.getOldVersionCode()))){
-             if (Integer.parseInt(mAppInfo.getCurrentVersionCode()) < Integer.parseInt(mCheckJson.getCurrentVersionCode())){
-//                Toast.makeText(MainActivity.this, "update", Toast.LENGTH_LONG).show();
+        if ((mAppInfo.getNameApp().equals(mJsonInfo.getNameApp())) && (mAppInfo.getCurrentVersionCode().equals(mJsonInfo.getOldVersionCode()))){
+             if (Integer.parseInt(mAppInfo.getCurrentVersionCode()) < Integer.parseInt(mJsonInfo.getCurrentVersionCode())){
+                 // Toast.makeText(MainActivity.this, "update", Toast.LENGTH_LONG).show();
                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                      data = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                      edit = data.edit();
                      edit.putBoolean("AlertDialog", true);
                      edit.apply();
+                     //                                          getApplicationContext error
+                     //                                          Entonces, ponga el nombre de su actividad inicial
                      mDialogDownloadApp = new AlertDialog.Builder(MainActivity.this)
                              .setTitle("New version available")
                              .setMessage("Please, update app to new version.")
@@ -305,14 +306,6 @@ public class MainActivity extends AppCompatActivity {
                  }
             }
         }
-    }
-    public static Map<String, Object> jsonToMap(JSONObject json) throws JSONException {
-        Map<String, Object> retMap = new HashMap<String, Object>();
-
-        if(json != JSONObject.NULL) {
-            retMap = toMap(json);
-        }
-        return retMap;
     }
 
     public static Map<String, Object> toMap(JSONObject object) throws JSONException {
@@ -354,8 +347,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             if (requestCode == REQUEST_CODE_UKNOWN_APPS && resultCode == Activity.RESULT_OK) {

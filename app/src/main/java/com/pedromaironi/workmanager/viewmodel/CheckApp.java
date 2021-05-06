@@ -63,9 +63,7 @@ public class CheckApp extends ViewModel {
     private void SetupScheduler(){
         mWorkManager = WorkManager.getInstance(DownloadApk.mContext);
         LiveData<List<WorkInfo>> mSavedWorkStatus = mWorkManager.getWorkInfosByTagLiveData(Constants.TAG_WORKER_THREAD);
-
         if(mSavedWorkStatus.getValue() != null && !mSavedWorkStatus.getValue().isEmpty()) {
-
             if (mSavedWorkStatus.getValue().get(0).getState().isFinished()){
                 scheduleTask();
             }

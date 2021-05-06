@@ -14,7 +14,7 @@ public class Constants {
     public static final String DOWNLOAD_FILE_APK_URL = "//downloadapk.pedromaironi.com/workmanager.apk";
     public static final String DOWNLOAD_FILE_JSON_NAME = "InformationVersion";
     public static final String JSON_EXTENSION = ".json";
-    public static final String DOWNLOAD_FILE_APP_NAME = "App";
+    public static final String DOWNLOAD_FILE_APP_NAME = "WorkManager";
     public static final String APK_EXTENSION = ".apk";
 
     public static final String TAG_WORKER_THREAD = "dowloadThread";

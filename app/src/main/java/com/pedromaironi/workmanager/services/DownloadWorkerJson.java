@@ -75,9 +75,9 @@ public class DownloadWorkerJson extends Worker {
             input.close();
 
         } catch (Exception e) {
-            Log.e("Error: ", e.getMessage());
+            // Log.e("Error: ", e.getMessage());
             WorkManager.getInstance(DownloadJson.getJson()).cancelAllWorkByTag(Constants.TAG_WORKER_THREAD);
-            Log.e("Error: ", String.valueOf(Result.failure()));
+            // Log.e("Error: ", String.valueOf(Result.failure()));
             return Worker.Result.failure();
         }
 

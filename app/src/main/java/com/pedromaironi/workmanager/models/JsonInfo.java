@@ -14,7 +14,7 @@ import android.util.Log;
 import com.pedromaironi.workmanager.ui.DownloadApk;
 import com.pedromaironi.workmanager.ui.MainActivity;
 
-public class CheckJson {
+public class JsonInfo {
     String nameApp;
     String downloadUrl;
     String currentVersionCode;
@@ -27,11 +27,11 @@ public class CheckJson {
     private AppInfo mAppInfo;
     private AlertDialog mDialogDownloadApp;
 
-    public CheckJson(){
+    public JsonInfo(){
         mAppInfo = new AppInfo();
     }
 
-    public CheckJson(String nameApp, String downloadUrl, String currentVersionCode, String currentVersionName, String oldVersionCode, String oldVersionName) {
+    public JsonInfo(String nameApp, String downloadUrl, String currentVersionCode, String currentVersionName, String oldVersionCode, String oldVersionName) {
         this.nameApp = nameApp;
         this.downloadUrl = downloadUrl;
         this.currentVersionCode = currentVersionCode;
